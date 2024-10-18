@@ -54,11 +54,27 @@ STM32_INCLUDE_FLAGS = -I$(STM32_INCLUDE_DIR) \
 STM32_STARTUP_FLAGS = -g3 -DDEBUG -c -x assembler-with-cpp --specs=nano.specs \
 											-mfloat-abi=soft -mthumb
 
+# Linking
+TARGET = omni-mapper
+STM32_LINKER_ELF = $(TARGET).elf
+STM32_LINKER_OBJECTS_LIST = objects.list
+STM32_LINKER_FLAGS = -T"$(STM32_PROJECT_ROOT_DIR)/STM32F030R8TX_FLASH.ld" \
+										--specs=nosys.specs \
+										-Wl,-Map="$(TARGET).map" \
+										-Wl,--gc-sections \
+										-static \
+										--specs=nano.specs \
+										-mfloat-abi=soft \
+										-mthumb \
+										-Wl,--start-group \
+										-lc \
+										-lm \
+										-Wl,--end-group
 
 # Toolchain
 CC = arm-none-eabi-gcc
 
-all: $(STM32_LINKER_ELF) $(STM32_HAL_DRIVERS_OBJ) $(STM32_OBJ) $(STM32_STARTUP_OBJ) 
+all: $(STM32_LINKER_ELF)  
 
 $(info Building STM32 Hal Drivers...$(newline))
 $(STM32_HAL_DRIVERS_OBJ_DIR)/%.o: $(STM32_HAL_DRIVERS_SRC_DIR)/%.c | $(STM32_HAL_DRIVERS_OBJ_DIR)
@@ -82,26 +98,11 @@ $(STM32_STARTUP_OBJ_DIR):
 	mkdir -p $(STM32_STARTUP_OBJ_DIR)
 
 
-# Linking
-TARGET = omni-mapper
-STM32_LINKER_OBJECTS_LIST = objects.list
-STM32_LINKER_ELF = $(TARGET).elf
-STM32_LINKER_FLAGS = -T"$(STM32_PROJECT_ROOT_DIR)/STM32F030R8TX_FLASH.ld" \
-										--specs=nosys.specs \
-										-Wl,-Map="$(TARGET).map" \
-										-Wl,--gc-sections \
-										-static \
-										--specs=nano.specs \
-										-mfloat-abi=soft \
-										-mthumb \
-										-Wl,--start-group \
-										-lc \
-										-lm \
-										-Wl,--end-group
-
 $(STM32_LINKER_ELF): $(STM32_HAL_DRIVERS_OBJ) $(STM32_OBJ) $(STM32_STARTUP_OBJ)
 	$(CC) -o $(STM32_LINKER_ELF) @"$(STM32_LINKER_OBJECTS_LIST)" $(STM32_BOARD_BUILD) $(STM32_LINKER_FLAGS)
 
 
+clean:
+	rm -f $(STM32_LINKER_ELF) $(STM32_OBJ_DIR)/*.o $(STM32_HAL_DRIVERS_OBJ_DIR)/*.o $(STM32_STARTUP_OBJ_DIR)/*.o
 
 
