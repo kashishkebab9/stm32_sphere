@@ -101,8 +101,13 @@ $(STM32_STARTUP_OBJ_DIR):
 $(STM32_LINKER_ELF): $(STM32_HAL_DRIVERS_OBJ) $(STM32_OBJ) $(STM32_STARTUP_OBJ)
 	$(CC) -o $(STM32_LINKER_ELF) @"$(STM32_LINKER_OBJECTS_LIST)" $(STM32_BOARD_BUILD) $(STM32_LINKER_FLAGS)
 
-
 clean:
 	rm -f $(STM32_LINKER_ELF) $(STM32_OBJ_DIR)/*.o $(STM32_HAL_DRIVERS_OBJ_DIR)/*.o $(STM32_STARTUP_OBJ_DIR)/*.o
+
+flash: $(TARGET).bin
+	st-flash write $(TARGET).bin 0x08000000 && st-flash reset
+
+omni-mapper.bin: $(STM32_LINKER_ELF)
+	arm-none-eabi-objcopy -O binary $(STM32_LINKER_ELF) $(TARGET).bin
 
 
